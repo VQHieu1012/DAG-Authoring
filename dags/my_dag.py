@@ -25,6 +25,6 @@ with DAG("my_dag",
         extract = PythonOperator(
             task_id = 'extract',
             python_callable=_extract,
-            op_args=["{{var.json.my_dag_json.name}}"]
+            op_args=["{{var.json.MY_DAG_JSON.name}}"]
         )
     
