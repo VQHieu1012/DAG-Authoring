@@ -3,9 +3,10 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
 from airflow.decorators import task, dag
+from typing import Dict
 
-@task.python
-def extract(name, ti=None):
+@task.python(task_id="extract", multiple_outputs=True)
+def extract(name, ti=None) :
     print(f"Task extract {name}!!!")
     partner_name = "Degurech"
     return {
@@ -16,11 +17,11 @@ def extract(name, ti=None):
     #ti.xcom_push(key="partner_name", value=name)
 
 @task.python
-def process(data):
+def process(data_name, partner_name):
     # partner_name = ti.xcom_pull(key="partner_name", task_ids="extract")
     # data = ti.xcom_pull(task_ids="extract")
-    print(f"Task process {data["name"]}")
-    print(f"Task process {data["partner_name"]}")
+    print(f"Task process {data_name}")
+    print(f"Task process {partner_name}")
     
 
 @dag(   description="DAG in charge of processing customer data",
@@ -32,7 +33,8 @@ def process(data):
         # if schedule_interval = 10 minutes, maybe dagrun_interval needs to > 10 minutes 
         # max_active_runs: number of concurrent dag can run
 def decorator():
-    process(extract())    
+    data = extract("Rancho")
+    process(data["name"], data["partner_name"])    
     
 decorator()
     
