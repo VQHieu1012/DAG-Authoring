@@ -2,21 +2,25 @@ from airflow import DAG
 from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
 
-def _extract(partner_name):
-    # partner = Variable.get('my_dag_partner')
-    # secret_partner = Variable.get('my_dag_secret')
-    # partner_setting = Variable.get('my_dag_json', deserialize_json=True)
-    # name = partner_setting['name']
-    # passwd = partner_setting['api_secret']
-    print(partner_name)
+def _extract(name, ti=None):
+    print(f"Task extract {name}!!!")
+    partner_name = "Degurech"
+    return {
+        "name": name,
+        "partner_name": partner_name
+    } 
+    # key="return_value", value=name
+    #ti.xcom_push(key="partner_name", value=name)
     
-class CustomPostgresOperator(PostgresOperator):
-    template_fields = ('sql', 'parameters')
+def _process(ti):
+    # partner_name = ti.xcom_pull(key="partner_name", task_ids="extract")
+    data = ti.xcom_pull(task_ids="extract")
+    print(f"Task process {data["name"]}")
+    print(f"Task process {data["partner_name"]}")
     
-    
-with DAG("my_dag", 
+
+with DAG("xcom_dag", 
          description="DAG in charge of processing customer data",
          start_date=datetime(2024, 11, 1), schedule_interval='@daily',
          dagrun_timeout=timedelta(minutes=12),
@@ -32,13 +36,10 @@ with DAG("my_dag",
             op_args=["{{var.json.MY_DAG_JSON.name}}"]
         )
         
-        fetching_data = CustomPostgresOperator(
-            task_id="fetching_data",
-            sql="./sql/MY_REQUEST.sql",
-            parameters={
-               'next_ds': '{{next_ds}}',
-               'prev_ds': '{{prev_ds}}',
-               'partner_name': '{{var.json.MY_DAG_JSON.name}}'
-            }
+        process = PythonOperator(
+            task_id="process",
+            python_callable=_process
         )
+        
+        extract >> process
     
