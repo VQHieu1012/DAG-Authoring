@@ -1,0 +1,26 @@
+#### Airflow level ####
+
+# the max number of concurrency tasks your airflow instance can run at the same time
+# it means your airflow instance can run at most 32 tasks at the same time
+parallelism = 32 
+
+
+# the max number of tasks your dag can run at the same time
+# you won't have more than 16 tasks run for all dagrun for your dag
+dag_concurrency = 16
+
+
+# the number of dagruns that can run at the same time for a given dag
+max_active_run_per_dag = 16
+
+
+#### DAG level ####
+
+# at most 2 tasks run at the same time across all of the dagruns of the given dag [concurrency]
+# 1 dagrun at the time for this specific dag [max_active_runs]
+with (..., concurrency=2, max_active_runs=1)
+
+#### Task level ####
+
+# only 1 instance of task at the time across all dagruns of your dag [task_concurency]
+PythonOperator(task_id="", task_concurency=1, pool='default_pool')
