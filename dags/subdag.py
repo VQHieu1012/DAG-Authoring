@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from airflow.utils.task_group import TaskGroup
 from groups.process_tasks import process_tasks
 from airflow.operators.dummy import DummyOperator
+from time import sleep
 
 partners = {
     "partner_snowflake":{
@@ -41,25 +42,28 @@ default_args = {
      catchup=False, max_active_runs=1)
 def subdag_demo():
     
-    choosing_partner_based_on_day = BranchPythonOperator(
-        task_id="choosing_partner_based_on_day",
-        python_callable=_choosing_partner_based_on_day
-    )
+    # choosing_partner_based_on_day = BranchPythonOperator(
+    #     task_id="choosing_partner_based_on_day",
+    #     python_callable=_choosing_partner_based_on_day
+    # )
     
     start = DummyOperator( task_id="start" )
     
-    stop = DummyOperator( task_id = "stop")
+    # stop = DummyOperator( task_id = "stop")
     
     storing = DummyOperator( task_id = "storing", trigger_rule = 'none_failed_or_skipped' )
     
-    choosing_partner_based_on_day >> stop
+    # choosing_partner_based_on_day >> stop
+    # subdag: if we set pool to subdag, task in subdag will not respect this pool, only this subdag does
     
     for partner, details in partners.items():
-        @task.python(task_id=f"extract_{partner}", multiple_outputs=True)
+        @task.python(task_id=f"extract_{partner}", pool='partner_pool', multiple_outputs=True)
         def extract(partner_name, partner_path):
+            sleep(3)
             return {"partner_name": partner_name, "partner_path": partner_path}
         extracted_values = extract(details["name"], details["path"])
-        start >> choosing_partner_based_on_day >> extracted_values
+        # start >> choosing_partner_based_on_day >> extracted_values
+        start >> extracted_values
         process_tasks(extracted_values) >> storing
        
 
