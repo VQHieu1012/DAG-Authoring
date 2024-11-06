@@ -24,3 +24,6 @@ with (..., concurrency=2, max_active_runs=1)
 
 # only 1 instance of task at the time across all dagruns of your dag [task_concurency]
 PythonOperator(task_id="", task_concurency=1, pool='default_pool')
+
+
+# In tag, we have "priority_weight", but this only takes effect if these tasks share the same pool

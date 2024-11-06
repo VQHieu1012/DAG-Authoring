@@ -10,15 +10,21 @@ from time import sleep
 partners = {
     "partner_snowflake":{
         "name": "snowflake",
-        "path": "/partners/snowflake"
+        "path": "/partners/snowflake",
+        "priority": 2,
+        "pool": "snowflake"
     },
     "partner_netflix": {
         "name": "netflix",
-        "path": "/partners/netflix"    
+        "path": "/partners/netflix",
+        "priority": 3,
+        "pool": "netflix"
     }, 
     "partner_astronomer": {
         "name": "astronomer",
-        "path": "/partners/astronomer"    
+        "priority": 1,
+        "path": "/partners/astronomer",
+        "pool": "astronomer"
     }
 }
 
@@ -57,7 +63,7 @@ def subdag_demo():
     # subdag: if we set pool to subdag, task in subdag will not respect this pool, only this subdag does
     
     for partner, details in partners.items():
-        @task.python(task_id=f"extract_{partner}", pool='partner_pool', multiple_outputs=True)
+        @task.python(task_id=f"extract_{partner}", pool_slots=1, priority_weight=details["priority"], pool=details['pool'], multiple_outputs=True)
         def extract(partner_name, partner_path):
             sleep(3)
             return {"partner_name": partner_name, "partner_path": partner_path}
