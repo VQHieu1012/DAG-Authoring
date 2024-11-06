@@ -29,3 +29,18 @@ PythonOperator(task_id="", task_concurency=1, pool='default_pool')
 PythonOperator(task_id="", task_concurency=1, pool='default_pool', pool_slots=3)
 
 # In tag, we have "priority_weight", but this only takes effect if these tasks share the same pool
+
+# Keyword for task: depends_on_past=True
+for example:
+dagrun #1: t1 >> t2 >> t3
+dagrun #2: t1 >> t2 >> t3
+
+If t1_#1 fail, t1_#2 will not trigger and won't have any state -> you need to set timeout for task
+
+# Keyword for task: wait_for_downstream=True (this will set depends_on_past=True automatically)
+for example: 
+t1_#1 is succeed and t2_#1 is directly downstream of the t1_#1 and succeed, 
+t1_#2 will be triggered
+
+In case you need to run multiple dagrun and access same resources, you may come up with race condition and so on,
+So in order to ensure that your dag are not modifying the same resources at the same time, you can consider using this.

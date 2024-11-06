@@ -4,6 +4,7 @@ from airflow.decorators import task, dag
 from datetime import datetime, timedelta
 from airflow.utils.task_group import TaskGroup
 from groups.process_tasks import process_tasks
+from airflow.sensors.date_time import DateTimeSensor
 from airflow.operators.dummy import DummyOperator
 from time import sleep
 
@@ -43,6 +44,7 @@ default_args = {
 }
 @dag(description="DAG subdag demostration",
      default_args=default_args,
+     dagrun_timeout=timedelta(minutes=10),
      schedule_interval='@daily',
      dagrun_timeout=timedelta(minutes=10), tags=["subdag"],
      catchup=False, max_active_runs=1)
@@ -53,9 +55,18 @@ def subdag_demo():
     #     python_callable=_choosing_partner_based_on_day
     # )
     
-    start = DummyOperator( task_id="start" )
+    start = DummyOperator( task_id="start" , execution_timeout=timedelta(minutes=5))
     
     # stop = DummyOperator( task_id = "stop")
+    delay = DateTimeSensor(
+        task_id="delay",
+        target_time="{{execution_date.add(hours=9)}}",
+        poke_interval=60 * 60 * 10
+        # timeout + soft_fail -> when a task failed because of timeout, its state is skipped
+        # execution_timeout=60 -> for every operator
+        # exponential_backoff=True -> increase the waiting time between the interval of time,
+        # or between each poke interval, ex: instead of waiting 60s, it may be 70s
+    )
     
     storing = DummyOperator( task_id = "storing", trigger_rule = 'none_failed_or_skipped' )
     
