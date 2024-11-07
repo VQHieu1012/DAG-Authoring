@@ -45,8 +45,7 @@ default_args = {
 @dag(description="DAG subdag demostration",
      default_args=default_args,
      dagrun_timeout=timedelta(minutes=10),
-     schedule_interval='@daily',
-     dagrun_timeout=timedelta(minutes=10), tags=["subdag"],
+     schedule_interval='@daily', tags=["subdag"],
      catchup=False, max_active_runs=1)
 def subdag_demo():
     
