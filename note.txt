@@ -44,3 +44,11 @@ t1_#2 will be triggered
 
 In case you need to run multiple dagrun and access same resources, you may come up with race condition and so on,
 So in order to ensure that your dag are not modifying the same resources at the same time, you can consider using this.
+
+
+# Combo keywords for Retry task
+retries: number of time a task retries
+retry_delay: delay time between each Retry
+retry_exponential_backoff: Set to True and the time delay between 2 retries will increase
+max_retry_delay: max delay time between 2 retries
+

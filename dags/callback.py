@@ -71,6 +71,10 @@ with DAG("callback_dag",
                'prev_ds': '{{prev_ds}}',
                'partner_name': '{{var.json.MY_DAG_JSON.name}}'
             },
-            on_failure_callback=_on_failure_callback
+            on_failure_callback=_on_failure_callback,
+            retries=3,
+            retry_delay=timedelta(minutes=0.5),
+            retry_exponential_backoff=True,
+            max_retry_delay=timedelta(minutes=5)
         )
     
