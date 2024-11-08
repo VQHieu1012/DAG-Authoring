@@ -41,14 +41,26 @@ def _on_retry_callback(context):
     if context['ti'].try_number() > 2:
         print("RETRY > 2")
     print("RETRY CALLBACK!")
+
+def _sla_miss_callback(dag, task_list, blocking_task_list, blocking_tis, slas):
+    # You have 2 tasks, t1 and t2, t1 >> t2
+    # If t1 miss the SLA and t2 miss the SLA too because of t1, then t1 is considered as blocking task of t2
+    # --> t1 as a blocking task instance
+    print(dag)
+    print(task_list)
+    print(blocking_task_list)
+    print(blocking_tis)
+    print(slas)
     
 with DAG("callback_dag", 
          description="DAG in charge of processing customer data",
          start_date=datetime(2024, 11, 1), schedule_interval='@daily',
          dagrun_timeout=timedelta(minutes=12),
          tags=["data engineer", "customer data"],
-         catchup=False, max_active_runs=1, on_success_callback=_success_callback,
-         on_failure_callback=_failure_callback) as dag: 
+         catchup=False, max_active_runs=1, 
+         on_success_callback=_success_callback,
+         on_failure_callback=_failure_callback,
+         sla_miss_callback=_sla_miss_callback) as dag: 
         # if a dag runs for more than x minutes, then it fails
         # if schedule_interval = 10 minutes, maybe dagrun_interval needs to > 10 minutes 
         # max_active_runs: number of concurrent dag can run
@@ -75,6 +87,7 @@ with DAG("callback_dag",
             retries=3,
             retry_delay=timedelta(minutes=0.5),
             retry_exponential_backoff=True,
-            max_retry_delay=timedelta(minutes=5)
+            max_retry_delay=timedelta(minutes=5),
+            sla=timedelta(minutes=3)
         )
     

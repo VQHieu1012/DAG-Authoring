@@ -52,3 +52,18 @@ retry_delay: delay time between each Retry
 retry_exponential_backoff: Set to True and the time delay between 2 retries will increase
 max_retry_delay: max delay time between 2 retries
 
+# If a task running longer than you expected, you can use SLAs to receive notification.
+What is the different between SLAs and timeout?
+SLAs will keep the task running, timeout will mark the task as failed instead.
+The time SLAs used is related to the execution date, not the time which the task starts
+For example: if you want to verify that your DAG will only run within 10 minutes, 
+    you can modify the sla in your last task = 10
+    
+    In case you set sla of the second task is 5 minutes, but the first task takes 6 minutes to execute,
+    you will miss the sla. To handle this situation, you can use sla_miss_callback=_python_function 
+                            (this parameter is defined in DAG level, and it is applied for all of your tasks,
+                            you can't have different callback for different tasks)
+
+If you trigger your DAG manually (it means your DAG is not triggered by the Scheduler), your SLAs won't be checked.
+If you want to receive the notification from SLA, you need to configure the SMTP server and email parameter for your DAG
+
