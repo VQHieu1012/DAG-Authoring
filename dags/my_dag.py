@@ -3,6 +3,7 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 def _extract(partner_name):
     # partner = Variable.get('my_dag_partner')
@@ -40,5 +41,15 @@ with DAG("my_dag",
                'prev_ds': '{{prev_ds}}',
                'partner_name': '{{var.json.MY_DAG_JSON.name}}'
             }
+        )
+        
+        trigger = TriggerDagRunOperator(
+            task_id='trigger',
+            trigger_dag_id="sensor_demo", # dag you want to trigger
+            execution_date=datetime(2020, 2, 4), # use as execution date of the dag you want to trigger
+            wait_for_completion=True, # wait for the "sensor demo" dag completes before execute the next task
+            poke_interval=60, # check for the trigger dag completes or not
+            reset_dag_run=True, # best practice
+            failed_states=["failed", "skipped"]
         )
     
