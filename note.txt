@@ -67,3 +67,23 @@ For example: if you want to verify that your DAG will only run within 10 minutes
 If you trigger your DAG manually (it means your DAG is not triggered by the Scheduler), your SLAs won't be checked.
 If you want to receive the notification from SLA, you need to configure the SMTP server and email parameter for your DAG
 
+# Dynamic DAG
+The Multi-File Method airflow
+
+# ExternalTaskSensor
+In the log of task, you will see that the sensor is waiting for the my_dag.my_task at execution_date.
+That means the sensor is waiting for a task in a specific execution date. If that task doesn't complete in that execution date,
+your sensor will wait for 7 days as default and time out.
+
+So what if the task where the dag is implemented doesn't have the same scheduling interval as well as 
+the same start date with the other dag where the task is waiting for -> we do not have the same execution date
+
+-> execution_delta: the delta time between that dag and the other dag
+
+If we want to use execution_delta in a more complex way, we can use execution_date_fn.
+
+But if the task you are waiting for is failed, so the sensor will waiting forever. That is why
+we need to specify parameter "failed_states=[list of state]", if the waiting task has state in failed_states,
+your sensor will fail.   -> failed_states=["failed", "skipped"]
+
+Another parameter is "allowed_states=["success]"

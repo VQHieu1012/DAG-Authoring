@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from airflow.utils.task_group import TaskGroup
 from groups.process_tasks import process_tasks
 from airflow.sensors.date_time import DateTimeSensor
+from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.operators.dummy import DummyOperator
 from time import sleep
 
@@ -67,6 +68,12 @@ def subdag_demo():
         # or between each poke interval, ex: instead of waiting 60s, it may be 70s
     )
     
+    waiting_for_task = ExternalTaskSensor(
+        task_id='waiting_for_task',
+        external_task_id='dummy',
+        external_dag_id='my_dag'
+    )
+    
     storing = DummyOperator( task_id = "storing", trigger_rule = 'none_failed_or_skipped' )
     
     # choosing_partner_based_on_day >> stop
@@ -79,7 +86,7 @@ def subdag_demo():
             return {"partner_name": partner_name, "partner_path": partner_path}
         extracted_values = extract(details["name"], details["path"])
         # start >> choosing_partner_based_on_day >> extracted_values
-        start >> extracted_values
+        start >> waiting_for_task >> extracted_values
         process_tasks(extracted_values) >> storing
        
 
