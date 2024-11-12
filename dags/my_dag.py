@@ -50,6 +50,6 @@ with DAG("my_dag",
             wait_for_completion=True, # wait for the "sensor demo" dag completes before execute the next task
             poke_interval=60, # check for the trigger dag completes or not
             reset_dag_run=True, # best practice
-            failed_states=["failed", "skipped"]
+            failed_states=["failed"]
         )
     
